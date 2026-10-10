@@ -1,20 +1,27 @@
-name: Build Client
+name: build
 on:
+  workflow_dispatch:
   push:
-    branches: [main]
-  pull_request:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-java@v4
         with:
-          node-version: 20
-      - run: npm install
-      - run: npm run build
+          distribution: temurin
+          java-version: 21
+      - name: Unzip
+        run: unzip -q kaze-client-fixed.zip
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.2.0
+      - name: Build
+        working-directory: kaze_work
+        run: gradle build --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: client-dist
-          path: dist
+          name: kaze-jar
+          path: |
+            kaze_work/build/libs/*.jar
+            !kaze_work/build/libs/*-sources.jar
